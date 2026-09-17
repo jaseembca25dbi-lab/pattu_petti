@@ -1,32 +1,33 @@
-# React + TypeScript + Vite
+# 📻 Pattupetti (പാട്ടുപെട്ടി)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A modern, responsive Malayalam audio streaming web application built with React, TypeScript, Tailwind CSS, and Supabase.
 
-Currently, two official plugins are available:
+## 🚀 GitHub Pages Deployment
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This repository is pre-configured with a GitHub Actions workflow (`.github/workflows/deploy.yml`) for automated deployment to GitHub Pages.
 
-## React Compiler
+### Enabling GitHub Pages on Repository:
+1. Open your repository on GitHub: `https://github.com/jaseembca25dbi-lab/pattu_petti`
+2. Go to **Settings** > **Pages**
+3. Under **Build and deployment** -> **Source**, select **GitHub Actions**
+4. The deployment workflow will automatically build and publish the application at:
+   `https://jaseembca25dbi-lab.github.io/pattu_petti/`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### (Optional) Configure Repository Secrets:
+Go to **Settings** > **Secrets and variables** > **Actions** and set:
+- `VITE_SUPABASE_URL`: Your Supabase Project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase Publishable API Key
 
-## Expanding the Oxlint configuration
+## 🛠️ Local Development
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+```bash
+# Install dependencies
+npm install
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+# Start local development server
+npm run dev
+
+# Build production bundle
+npm run build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
