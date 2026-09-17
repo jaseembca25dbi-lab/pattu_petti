@@ -34,39 +34,20 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ songs, onOpenUpload })
   const [activeTab, setActiveTab] = useState<'archive' | 'recently_played' | 'favorites'>('archive');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  // Category filter pills for Screen 02
-  const filterPills = [
-    { id: 'ALL', label: '01 ALL' },
-    { id: 'Arijit Singh Radio', label: '02 ARIJIT SINGH' },
-    { id: 'Mix Hit', label: '03 MIX HIT' },
-    { id: 'Malayalam', label: '04 MALAYALAM' },
-    { id: 'Tamil Hit', label: '05 TAMIL HIT' },
-  ];
+  // Build filter pills dynamically from actual song categories
+  const filterPills = useMemo(() => {
+    const categories = Array.from(new Set(songs.map((s) => s.category || 'Mix Hit').filter(Boolean))).sort();
+    return [
+      { id: 'ALL', label: 'ALL' },
+      ...categories.map((cat) => ({ id: cat, label: cat.toUpperCase() })),
+    ];
+  }, [songs]);
 
   const filteredArchiveSongs = useMemo(() => {
     if (selectedCategory === 'ALL') return songs;
-
-    if (selectedCategory.includes('Arijit')) {
-      return songs.filter((s) => {
-        const title = s.title.toLowerCase();
-        const artist = (s.artist || '').toLowerCase();
-        return (
-          artist.includes('arijit') ||
-          title.includes('shayad') ||
-          title.includes('raataan') ||
-          title.includes('kesariya') ||
-          title.includes('channa') ||
-          title.includes('samjhawan') ||
-          title.includes('ranjha') ||
-          title.includes('satranga') ||
-          title.includes('pal')
-        );
-      });
-    }
-
     return songs.filter((s) => {
-      const cat = (s.category || 'other').toLowerCase();
-      return cat.includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(cat);
+      const cat = (s.category || '').toLowerCase();
+      return cat === selectedCategory.toLowerCase();
     });
   }, [songs, selectedCategory]);
 

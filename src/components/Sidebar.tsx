@@ -16,7 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   selectedCollection,
   onSelectCollection,
-  availableCollections = ['Arijit Singh Radio', 'Mix Hit', 'Malayalam', 'Tamil Hit'],
+  availableCollections = ['Arijit Singh Radio', 'Mix Hit', 'Shafi Kollam Radio', 'Tamil Hit'],
 }) => {
   const mainNavItems = [
     { id: 'home' as NavTab, number: '01', label: 'HOME' },

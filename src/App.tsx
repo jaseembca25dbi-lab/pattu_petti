@@ -10,9 +10,8 @@ import { SearchView } from './views/SearchView';
 import { LibraryView } from './views/LibraryView';
 import { CategoryView } from './views/CategoryView';
 import type { Song } from './types/song';
-import { cleanFileNameToTitle } from './lib/filename';
+import { parseFilenameArtistTitle, folderToCategory } from './lib/filename';
 import { supabase, isSupabaseConfigured, rawSupabaseUrl } from './lib/supabase';
-import { DEFAULT_SONGS } from './data/defaultSongs';
 import { getAutoCover } from './lib/covers';
 import {
   Radio,
@@ -27,58 +26,26 @@ import {
 export const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [selectedCategory, setSelectedCategory] = useState<string>('Arijit Singh Radio');
-  const [songs, setSongs] = useState<Song[]>(DEFAULT_SONGS);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
 
-  // Fetch songs from Supabase, or merge with default catalog
+  // Fetch songs exclusively from the Supabase 'songs' storage bucket
   const fetchSongs = useCallback(async () => {
+    setIsLoading(true);
+
     if (!isSupabaseConfigured()) {
-      setSongs(DEFAULT_SONGS);
+      setSongs([]);
       setIsLoading(false);
       return;
     }
-
-    setIsLoading(true);
 
     try {
       const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac', '.opus', '.webm'];
       const loadedSongs: Song[] = [];
       const seenPaths = new Set<string>();
 
-      // Fetch DB metadata lookup map if available
-      const dbMetaByFilename = new Map<string, any>();
-      try {
-        const { data: dbSongs, error: dbError } = await supabase
-          .from('songs')
-          .select('*');
-
-        if (!dbError && dbSongs && dbSongs.length > 0) {
-          for (const s of dbSongs) {
-            const raw = (s.audio_url || s.url || s.title || '').toLowerCase();
-            const fn = raw.split('/').pop() || '';
-            if (fn) dbMetaByFilename.set(fn, s);
-
-            // Also directly register DB songs if they have direct audio_url
-            if (s.audio_url && !seenPaths.has(s.id)) {
-              seenPaths.add(s.id);
-              loadedSongs.push({
-                id: String(s.id),
-                title: s.title || 'Untitled Track',
-                artist: s.artist,
-                audio_url: s.audio_url,
-                category: s.category || s.genre || 'Mix Hit',
-                cover_url: s.cover_url || getAutoCover(s.title, s.category),
-                created_at: s.created_at || new Date().toISOString(),
-              });
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('DB metadata query skipped:', e);
-      }
-
-      // Recursive scanner for storage buckets
+      // Recursive scanner for the 'songs' storage bucket
       const scanBucketPath = async (bucket: string, folderPath = '') => {
         try {
           const { data: items, error } = await supabase.storage
@@ -94,35 +61,37 @@ export const AppContent: React.FC = () => {
 
             if (isAudio) {
               const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(itemPath);
-              let audioUrl = urlData?.publicUrl;
-              if (rawSupabaseUrl && audioUrl?.includes('/supabase-proxy')) {
+              let audioUrl = urlData?.publicUrl || '';
+              // Fix URL if running through Vite proxy
+              if (rawSupabaseUrl && audioUrl.includes('/supabase-proxy')) {
                 audioUrl = audioUrl.replace(/https?:\/\/[^/]+\/supabase-proxy/, rawSupabaseUrl);
               }
 
               const pathKey = `${bucket}/${itemPath}`.toLowerCase();
               if (audioUrl && !seenPaths.has(pathKey)) {
                 seenPaths.add(pathKey);
-                const dbInfo = dbMetaByFilename.get(item.name.toLowerCase());
-                const cleanTitle = dbInfo?.title || cleanFileNameToTitle(item.name);
-                
-                // Derive category from immediate folder name if inside a folder
+
+                // Parse clean title & artist from the filename
+                const { title, artist } = parseFilenameArtistTitle(item.name);
+
+                // Derive category from the immediate parent folder name
                 const folderSegments = folderPath.split('/').filter(Boolean);
-                const categoryName = folderSegments.length > 0
-                  ? folderSegments[0].split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                const category = folderSegments.length > 0
+                  ? folderToCategory(folderSegments[0])
                   : 'Mix Hit';
 
                 loadedSongs.push({
-                  id: dbInfo?.id ? String(dbInfo.id) : `${bucket}/${itemPath}`,
-                  title: cleanTitle,
-                  artist: dbInfo?.artist,
+                  id: `${bucket}/${itemPath}`,
+                  title: title || item.name,
+                  artist: artist || undefined,
                   audio_url: audioUrl,
-                  category: dbInfo?.genre || dbInfo?.category || categoryName,
-                  cover_url: dbInfo?.cover_url || getAutoCover(cleanTitle, categoryName),
-                  created_at: item.created_at || new Date().toISOString(),
+                  category,
+                  cover_url: getAutoCover(title, category),
+                  created_at: item.created_at || item.updated_at || new Date().toISOString(),
                 });
               }
-            } else if (!item.id || item.id === item.name || !item.name.includes('.')) {
-              // Recurse into subfolder
+            } else if (!item.metadata) {
+              // No metadata = it's a subfolder, recurse into it
               await scanBucketPath(bucket, itemPath);
             }
           }
@@ -131,19 +100,13 @@ export const AppContent: React.FC = () => {
         }
       };
 
-      // Only scan the 'songs' bucket
       await scanBucketPath('songs', '');
 
-      // When Supabase has songs, use ONLY those (no dummy defaults mixed in)
-      if (loadedSongs.length > 0) {
-        setSongs(loadedSongs);
-      } else {
-        // No Supabase songs yet — show default template library
-        setSongs(DEFAULT_SONGS);
-      }
+      // Always use ONLY real Supabase songs — never fall back to dummy defaults
+      setSongs(loadedSongs);
     } catch (err: any) {
-      console.warn('Error fetching Supabase songs, using default library:', err);
-      setSongs(DEFAULT_SONGS);
+      console.error('Error fetching Supabase songs:', err);
+      setSongs([]);
     } finally {
       setIsLoading(false);
     }
@@ -193,6 +156,7 @@ export const AppContent: React.FC = () => {
             onSelectTab={setActiveTab}
             selectedCollection={activeTab === 'category' ? selectedCategory : null}
             onSelectCollection={handleSelectCategory}
+            availableCollections={Array.from(new Set(songs.map((s) => s.category || 'Mix Hit').filter(Boolean))).sort()}
           />
         </div>
 

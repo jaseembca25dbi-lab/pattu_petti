@@ -40,14 +40,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
       .slice(0, 8);
   }, [songs]);
 
-  // Group by category
+  // Group songs by category dynamically
   const categoriesMap = useMemo(() => {
-    const map: Record<string, Song[]> = {
-      'Arijit Singh Radio': [],
-      'Mix Hit': [],
-      'Malayalam': [],
-      'Tamil Hit': [],
-    };
+    const map: Record<string, Song[]> = {};
     songs.forEach((song) => {
       const cat = song.category && song.category.trim() ? song.category.trim() : 'Mix Hit';
       if (!map[cat]) map[cat] = [];
