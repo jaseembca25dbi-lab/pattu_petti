@@ -5,27 +5,50 @@
 @layer base {
   * {
     box-sizing: border-box;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  body {
+    background-color: #0b080a;
+    color: #f5ebe6;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, .font-heading {
+    letter-spacing: -0.01em;
   }
 }
 
-/* Custom slick dark scrollbar */
+/* Typography Helpers */
+.font-display {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.font-script {
+  font-family: 'Caveat', cursive;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+/* Custom slick espresso & rose scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0b080a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e2433;
+  background: #271a24;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2b3347;
+  background: #4a2d3f;
 }
 
 /* Custom range input styling for audio seek & volume */
@@ -41,20 +64,20 @@ input[type="range"]:focus {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 4px;
+  height: 3px;
   border-radius: 9999px;
-  background-color: #272f42;
+  background-color: #261822;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  margin-top: -4px;
-  background-color: #22c55e;
+  margin-top: -4.5px;
+  background-color: #e29d8f;
   height: 12px;
   width: 12px;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+  box-shadow: 0 0 10px rgba(226, 157, 143, 0.6);
   opacity: 0;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
@@ -65,21 +88,31 @@ input[type="range"]:active::-webkit-slider-thumb {
   transform: scale(1.15);
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(18, 22, 31, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+/* Vinyl Record Effect Styling */
+.vinyl-record {
+  border-radius: 50%;
+  background: radial-gradient(circle, #1a1518 10%, #0d0a0c 25%, #1c151a 38%, #0d0a0c 48%, #1f171d 60%, #0a0709 75%);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8), inset 0 0 0 2px rgba(255, 255, 255, 0.05);
 }
 
-.glass-card {
-  background: rgba(24, 29, 40, 0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.vinyl-grooves {
+  background-image: repeating-radial-gradient(
+    circle at center,
+    transparent 0,
+    transparent 2px,
+    rgba(226, 157, 143, 0.03) 3px,
+    transparent 4px
+  );
 }
 
-.glass-card:hover {
-  background: rgba(30, 37, 51, 0.8);
-  border-color: rgba(34, 197, 94, 0.25);
+/* Glass & Card Helpers */
+.editorial-card {
+  background: rgba(22, 14, 20, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 157, 143, 0.12);
+}
+
+.editorial-card:hover {
+  border-color: rgba(226, 157, 143, 0.3);
+  background: rgba(30, 19, 27, 0.75);
 }

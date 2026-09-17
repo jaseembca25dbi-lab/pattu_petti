@@ -1,51 +1,44 @@
 import React, { useState } from 'react';
-import { Music2 } from 'lucide-react';
+import { getAutoCover } from '../lib/covers';
 
 interface SongCoverProps {
   url?: string | null;
   alt: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  category?: string | null;
 }
 
 export const SongCover: React.FC<SongCoverProps> = ({
   url,
   alt,
   className = '',
-  size = 'md',
+  category,
 }) => {
-  const [hasError, setHasError] = useState(false);
+  const [imgSrc, setImgSrc] = useState<string>(() => {
+    return getAutoCover(alt, category, url);
+  });
+  const [errorCount, setErrorCount] = useState<number>(0);
 
-  // Icon sizing based on size prop
-  const iconSizes = {
-    sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16',
+  const handleError = () => {
+    if (errorCount === 0) {
+      // Try fallback from curated pool
+      setErrorCount(1);
+      setImgSrc(getAutoCover(alt, category, null));
+    }
   };
 
-  if (url && !hasError) {
-    return (
+  return (
+    <div className={`relative overflow-hidden bg-[#160d13] ${className}`}>
       <img
-        src={url}
+        src={imgSrc}
         alt={alt}
-        onError={() => setHasError(true)}
-        className={`object-cover ${className}`}
+        onError={handleError}
+        className="w-full h-full object-cover select-none pointer-events-none"
         loading="lazy"
       />
-    );
-  }
-
-  // Stylish dark gradient placeholder with vinyl ring effect
-  return (
-    <div
-      className={`relative flex items-center justify-center bg-gradient-to-br from-[#161c28] via-[#10141e] to-[#0a0d14] text-emerald-400/70 overflow-hidden select-none border border-white/5 ${className}`}
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent_70%)]" />
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
-      <div className="relative z-10 flex flex-col items-center justify-center">
-        <Music2 className={`${iconSizes[size]} text-emerald-400 drop-shadow`} />
-      </div>
+      {/* Subtle warm rose gradient overlay for editorial consistency */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
     </div>
   );
 };

@@ -1,70 +1,133 @@
 import React from 'react';
-import { Home, Search, Library, Radio } from 'lucide-react';
+import { Sparkles, Disc, Radio } from 'lucide-react';
 
-export type NavTab = 'home' | 'search' | 'library';
+export type NavTab = 'home' | 'search' | 'library' | 'category';
 
 interface SidebarProps {
   activeTab: NavTab;
   onSelectTab: (tab: NavTab) => void;
+  selectedCollection?: string | null;
+  onSelectCollection?: (collection: string) => void;
+  availableCollections?: string[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onSelectTab,
+  selectedCollection,
+  onSelectCollection,
+  availableCollections = ['Arijit Singh Radio', 'Atmospheric', 'Mix Hit', 'Malayalam', 'Tamil Hit', 'Other'],
 }) => {
-  const navItems = [
-    { id: 'home' as NavTab, label: 'Home', icon: Home },
-    { id: 'search' as NavTab, label: 'Search', icon: Search },
-    { id: 'library' as NavTab, label: 'Your Library', icon: Library },
+  const mainNavItems = [
+    { id: 'home' as NavTab, number: '01', label: 'HOME' },
+    { id: 'search' as NavTab, label: 'SEARCH', number: '02' },
+    { id: 'library' as NavTab, label: 'LIBRARY', number: '03' },
   ];
 
+  // Dynamic bottom quote depending on active screen
+  const getSidebarQuote = () => {
+    if (activeTab === 'search') return 'Find what moves you.';
+    if (activeTab === 'library') return 'Every song a story.';
+    if (activeTab === 'category') return 'Same Vibes Different Stories.';
+    return 'Music for a better you.';
+  };
+
   return (
-    <aside className="w-64 bg-dark-950/80 border-r border-white/5 flex flex-col justify-between p-5 select-none h-full">
-      {/* Brand Header */}
+    <aside className="w-64 bg-[#0e0a0d] border-r border-[#e29d8f]/10 flex flex-col justify-between p-5 select-none h-full overflow-y-auto">
       <div>
-        <div className="flex items-center gap-3 px-2 py-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
-            <Radio className="w-5 h-5 text-black" />
-          </div>
-          <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-              <span>Pattupetti</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">
-                PRO
-              </span>
+        {/* Brand Header */}
+        <div 
+          onClick={() => {
+            if (onSelectCollection) onSelectCollection('');
+            onSelectTab('home');
+          }}
+          className="px-2 py-4 mb-6 border-b border-[#e29d8f]/10 cursor-pointer group"
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <Radio className="w-5 h-5 text-[#e29d8f] group-hover:rotate-12 transition-transform" />
+            <h1 className="font-display text-3xl tracking-widest text-white leading-none group-hover:text-[#f5bcaf] transition-colors">
+              PATTUPETTI
             </h1>
-            <p className="text-[11px] text-neutral-400 font-medium">Personal Music Box</p>
           </div>
+          <p className="text-[9px] font-semibold tracking-[0.25em] text-[#e29d8f]/70 uppercase">
+            PERSONAL MUSIC BOX
+          </p>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+        {/* Main Navigation (01 HOME, 02 SEARCH, 03 LIBRARY) */}
+        <nav className="space-y-1.5 mb-8">
+          {mainNavItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                onClick={() => {
+                  if (onSelectCollection) onSelectCollection('');
+                  onSelectTab(item.id);
+                }}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-xs tracking-wider transition-all duration-200 ${
                   isActive
-                    ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20 shadow-sm'
-                    : 'text-neutral-400 hover:text-neutral-100 hover:bg-white/5'
+                    ? 'bg-[#311b26] text-[#f5bcaf] border border-[#e29d8f]/30 shadow-md shadow-black/40'
+                    : 'text-[#ab9398] hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-brand-400' : 'text-neutral-400'}`} />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] font-mono ${isActive ? 'text-[#e29d8f]' : 'text-[#7e676b]'}`}>
+                    {item.number}
+                  </span>
+                  <span>{item.label}</span>
+                </div>
+                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#e29d8f]" />}
               </button>
             );
           })}
         </nav>
+
+        {/* YOUR COLLECTION */}
+        <div className="space-y-2">
+          <div className="px-3 flex items-center justify-between">
+            <span className="text-[10px] font-semibold tracking-[0.2em] text-[#a88d92] uppercase">
+              YOUR COLLECTION
+            </span>
+            <Sparkles className="w-3 h-3 text-[#e29d8f]/50" />
+          </div>
+
+          <div className="space-y-0.5">
+            {availableCollections.map((col) => {
+              const isColActive = activeTab === 'category' && selectedCollection?.toLowerCase() === col.toLowerCase();
+              return (
+                <button
+                  key={col}
+                  onClick={() => {
+                    if (onSelectCollection) onSelectCollection(col);
+                    onSelectTab('category');
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left truncate ${
+                    isColActive
+                      ? 'bg-[#311b26] text-[#f5bcaf] border-l-2 border-[#e29d8f] pl-3.5'
+                      : 'text-[#9c8489] hover:text-[#f5ebe6] hover:bg-white/[0.02]'
+                  }`}
+                >
+                  <Disc className={`w-3.5 h-3.5 flex-shrink-0 ${isColActive ? 'text-[#e29d8f]' : 'text-[#6b5559]'}`} />
+                  <span className="truncate">{col}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Quick Info */}
-      <div className="pt-4 border-t border-white/5">
-        <div className="px-3 py-2 rounded-xl bg-dark-900/60 border border-white/5 text-[11px] text-neutral-400 leading-relaxed">
-          <p className="font-semibold text-neutral-300 mb-0.5">Direct Cloud Sync</p>
-          <p>Songs load automatically from Supabase Storage.</p>
+      {/* Bottom Aesthetic Quote Card */}
+      <div className="mt-8 pt-4 border-t border-[#e29d8f]/10">
+        <div className="relative rounded-2xl overflow-hidden p-4 bg-gradient-to-br from-[#1d1219] to-[#120b10] border border-[#e29d8f]/15 shadow-xl group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#e29d8f]/10 rounded-full blur-xl pointer-events-none" />
+          <p className="font-script text-2xl text-[#f5bcaf] leading-tight drop-shadow-sm transition-all duration-300">
+            {getSidebarQuote()}
+          </p>
+          <div className="mt-3 flex items-center justify-between text-[9px] text-[#a88d92] tracking-widest uppercase">
+            <span>Pattupetti Radio</span>
+            <span className="text-[#e29d8f]">✦ 2026</span>
+          </div>
         </div>
       </div>
     </aside>
