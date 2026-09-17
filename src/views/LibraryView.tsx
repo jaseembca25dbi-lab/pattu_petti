@@ -38,11 +38,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ songs, onOpenUpload })
   const filterPills = [
     { id: 'ALL', label: '01 ALL' },
     { id: 'Arijit Singh Radio', label: '02 ARIJIT SINGH' },
-    { id: 'Atmospheric', label: '03 ATMOSPHERIC' },
-    { id: 'Mix Hit', label: '04 MIX HIT' },
-    { id: 'Malayalam', label: '05 MALAYALAM' },
-    { id: 'Tamil Hit', label: '06 TAMIL HIT' },
-    { id: 'Other', label: '07 OTHER' },
+    { id: 'Mix Hit', label: '03 MIX HIT' },
+    { id: 'Malayalam', label: '04 MALAYALAM' },
+    { id: 'Tamil Hit', label: '05 TAMIL HIT' },
   ];
 
   const filteredArchiveSongs = useMemo(() => {

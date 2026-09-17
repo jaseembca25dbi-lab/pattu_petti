@@ -109,14 +109,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         quote: 'Home in Every Note.',
       };
     }
-    if (t.includes('atmospheric')) {
-      return {
-        title: 'ATMOSPHERIC VIBES',
-        desc: 'Deep ambient resonance, gentle soundscapes, and nighttime acoustic melodies.',
-        image: EDITORIAL_IMAGES.pritam,
-        quote: 'Lost in the Sound.',
-      };
-    }
     if (t.includes('mix')) {
       return {
         title: 'MIX HIT REPERTOIRE',

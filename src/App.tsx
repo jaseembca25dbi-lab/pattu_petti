@@ -67,7 +67,7 @@ export const AppContent: React.FC = () => {
                 title: s.title || 'Untitled Track',
                 artist: s.artist,
                 audio_url: s.audio_url,
-                category: s.category || s.genre || 'Other',
+                category: s.category || s.genre || 'Mix Hit',
                 cover_url: s.cover_url || getAutoCover(s.title, s.category),
                 created_at: s.created_at || new Date().toISOString(),
               });
@@ -109,7 +109,7 @@ export const AppContent: React.FC = () => {
                 const folderSegments = folderPath.split('/').filter(Boolean);
                 const categoryName = folderSegments.length > 0
                   ? folderSegments[0].split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                  : 'Other';
+                  : 'Mix Hit';
 
                 loadedSongs.push({
                   id: dbInfo?.id ? String(dbInfo.id) : `${bucket}/${itemPath}`,
@@ -131,18 +131,14 @@ export const AppContent: React.FC = () => {
         }
       };
 
-      const candidateBuckets = ['songs', 'music'];
-      for (const bucket of candidateBuckets) {
-        await scanBucketPath(bucket, '');
-      }
+      // Only scan the 'songs' bucket
+      await scanBucketPath('songs', '');
 
-      // If user has uploaded songs in Supabase, combine with default template tracks
+      // When Supabase has songs, use ONLY those (no dummy defaults mixed in)
       if (loadedSongs.length > 0) {
-        // Merge without duplicate IDs
-        const existingIds = new Set(loadedSongs.map((s) => s.id));
-        const merged = [...loadedSongs, ...DEFAULT_SONGS.filter((s) => !existingIds.has(s.id))];
-        setSongs(merged);
+        setSongs(loadedSongs);
       } else {
+        // No Supabase songs yet — show default template library
         setSongs(DEFAULT_SONGS);
       }
     } catch (err: any) {

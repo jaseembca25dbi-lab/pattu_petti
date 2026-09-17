@@ -13,19 +13,15 @@ export interface Song {
 
 export type Category = 
   | 'Arijit Singh Radio'
-  | 'Atmospheric'
   | 'Mix Hit'
   | 'Malayalam'
-  | 'Tamil Hit'
-  | 'Other';
+  | 'Tamil Hit';
 
 export const STANDARD_CATEGORIES: Category[] = [
   'Arijit Singh Radio',
-  'Atmospheric',
   'Mix Hit',
   'Malayalam',
   'Tamil Hit',
-  'Other',
 ];
 
 /**

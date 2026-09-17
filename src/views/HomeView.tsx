@@ -44,14 +44,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const categoriesMap = useMemo(() => {
     const map: Record<string, Song[]> = {
       'Arijit Singh Radio': [],
-      'Atmospheric': [],
       'Mix Hit': [],
       'Malayalam': [],
       'Tamil Hit': [],
-      'Other': [],
     };
     songs.forEach((song) => {
-      const cat = song.category && song.category.trim() ? song.category.trim() : 'Other';
+      const cat = song.category && song.category.trim() ? song.category.trim() : 'Mix Hit';
       if (!map[cat]) map[cat] = [];
       map[cat].push(song);
     });

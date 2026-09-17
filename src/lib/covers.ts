@@ -36,11 +36,9 @@ export const EDITORIAL_IMAGES = {
 
 const CATEGORY_DEFAULT_COVERS: Record<string, string> = {
   'Arijit Singh Radio': EDITORIAL_IMAGES.aedil,
-  'Atmospheric': EDITORIAL_IMAGES.pritam,
   'Mix Hit': EDITORIAL_IMAGES.tumsehi,
   'Malayalam': EDITORIAL_IMAGES.kallipenne,
   'Tamil Hit': EDITORIAL_IMAGES.radhimaa,
-  'Other': EDITORIAL_IMAGES.shayad,
 };
 
 const FALLBACK_POOL = [
