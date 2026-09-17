@@ -7,6 +7,7 @@ import { HomeView } from './views/HomeView';
 import { SearchView } from './views/SearchView';
 import { LibraryView } from './views/LibraryView';
 import type { Song } from './types/song';
+import { cleanFileNameToTitle } from './lib/filename';
 import { supabase, isSupabaseConfigured, rawSupabaseUrl } from './lib/supabase';
 import {
   Radio,
@@ -24,8 +25,9 @@ export const AppContent: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch songs from Supabase:
-  // 1. First tries the 'songs' database table (if configured with metadata).
-  // 2. Fallbacks/augments by scanning storage buckets ('music' and 'songs') for direct files & folders.
+  // 1. Scans storage buckets ('songs' and 'music') and all subfolders ('mix hit', 'shafi kollam radio', 'tamil hit', etc.)
+  //    for real playable audio files with valid public URLs.
+  // 2. Augments with any database metadata (custom covers, titles) from the 'songs' table.
   const fetchSongs = useCallback(async () => {
     if (!isSupabaseConfigured()) {
       setIsLoading(false);
@@ -41,126 +43,105 @@ export const AppContent: React.FC = () => {
     try {
       const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac', '.opus', '.webm'];
       const loadedSongs: Song[] = [];
-      const seenIds = new Set<string>();
+      const seenPaths = new Set<string>();
 
-      // 1. Try fetching from the database `songs` table first
+      // Fetch DB metadata lookup map if available
+      const dbMetaByFilename = new Map<string, any>();
       try {
         const { data: dbSongs, error: dbError } = await supabase
           .from('songs')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('*');
 
-        if (!dbError && dbSongs && dbSongs.length > 0) {
+        if (!dbError && dbSongs) {
           for (const s of dbSongs) {
-            let audioUrl = s.audio_url || s.url;
-            let coverUrl = s.cover_url || null;
-
-            if (rawSupabaseUrl && audioUrl?.includes('/supabase-proxy')) {
-              audioUrl = audioUrl.replace(/https?:\/\/[^/]+\/supabase-proxy/, rawSupabaseUrl);
-            }
-            if (rawSupabaseUrl && coverUrl?.includes('/supabase-proxy')) {
-              coverUrl = coverUrl.replace(/https?:\/\/[^/]+\/supabase-proxy/, rawSupabaseUrl);
-            }
-
-            if (audioUrl) {
-              const songId = s.id ? String(s.id) : audioUrl;
-              loadedSongs.push({
-                id: songId,
-                title: s.title || 'Untitled Song',
-                audio_url: audioUrl,
-                category: s.category || s.genre || 'Other',
-                cover_url: coverUrl,
-                created_at: s.created_at || new Date().toISOString(),
-              });
-              seenIds.add(songId);
-            }
+            const raw = (s.audio_url || s.url || s.title || '').toLowerCase();
+            const fn = raw.split('/').pop() || '';
+            if (fn) dbMetaByFilename.set(fn, s);
           }
         }
-      } catch (dbErr) {
-        console.warn('Database query skipped or failed, checking storage buckets:', dbErr);
+      } catch (e) {
+        console.warn('DB metadata query skipped:', e);
       }
 
-      // 2. If database is empty, scan storage buckets ('music' and 'songs')
-      if (loadedSongs.length === 0) {
-        const candidateBuckets = ['songs', 'music'];
+      // Scan storage buckets
+      const candidateBuckets = ['songs', 'music'];
 
-        for (const bucket of candidateBuckets) {
-          try {
-            const { data: rootItems, error: rootError } = await supabase.storage
-              .from(bucket)
-              .list('', { limit: 500, sortBy: { column: 'name', order: 'asc' } });
+      for (const bucket of candidateBuckets) {
+        try {
+          const { data: rootItems, error: rootError } = await supabase.storage
+            .from(bucket)
+            .list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
 
-            if (rootError || !rootItems) continue;
+          if (rootError || !rootItems) continue;
 
-            for (const item of rootItems) {
-              const ext = item.name.includes('.') ? item.name.slice(item.name.lastIndexOf('.')).toLowerCase() : '';
-              const isAudio = AUDIO_EXTENSIONS.includes(ext);
+          for (const item of rootItems) {
+            const ext = item.name.includes('.') ? item.name.slice(item.name.lastIndexOf('.')).toLowerCase() : '';
+            const isAudio = AUDIO_EXTENSIONS.includes(ext);
 
-              if (isAudio) {
-                // Audio file directly at bucket root
-                const rawName = item.name.slice(0, item.name.lastIndexOf('.'));
-                const title = rawName.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
-                const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(item.name);
+            if (isAudio) {
+              // Audio file directly in root
+              const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(item.name);
+              let audioUrl = urlData?.publicUrl;
+              if (rawSupabaseUrl && audioUrl?.includes('/supabase-proxy')) {
+                audioUrl = audioUrl.replace(/https?:\/\/[^/]+\/supabase-proxy/, rawSupabaseUrl);
+              }
 
+              const pathKey = `${bucket}/${item.name}`.toLowerCase();
+              if (audioUrl && !seenPaths.has(pathKey)) {
+                seenPaths.add(pathKey);
+                const dbInfo = dbMetaByFilename.get(item.name.toLowerCase());
+                const cleanTitle = dbInfo?.title || cleanFileNameToTitle(item.name);
+
+                loadedSongs.push({
+                  id: dbInfo?.id ? String(dbInfo.id) : `${bucket}/${item.name}`,
+                  title: cleanTitle,
+                  audio_url: audioUrl,
+                  category: dbInfo?.genre || dbInfo?.category || 'General',
+                  cover_url: dbInfo?.cover_url || null,
+                  created_at: item.created_at || new Date().toISOString(),
+                });
+              }
+            } else if (!item.id || item.id === item.name || !item.name.includes('.')) {
+              // Folder (e.g. "mix hit", "shafi kollam radio", "tamil hit")
+              const folderName = item.name;
+              const { data: folderFiles } = await supabase.storage
+                .from(bucket)
+                .list(folderName, { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
+
+              for (const file of folderFiles || []) {
+                const fileExt = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : '';
+                if (!AUDIO_EXTENSIONS.includes(fileExt)) continue;
+
+                const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(`${folderName}/${file.name}`);
                 let audioUrl = urlData?.publicUrl;
                 if (rawSupabaseUrl && audioUrl?.includes('/supabase-proxy')) {
                   audioUrl = audioUrl.replace(/https?:\/\/[^/]+\/supabase-proxy/, rawSupabaseUrl);
                 }
 
-                if (audioUrl && !seenIds.has(`${bucket}/${item.name}`)) {
-                  seenIds.add(`${bucket}/${item.name}`);
+                const pathKey = `${bucket}/${folderName}/${file.name}`.toLowerCase();
+                if (audioUrl && !seenPaths.has(pathKey)) {
+                  seenPaths.add(pathKey);
+                  const dbInfo = dbMetaByFilename.get(file.name.toLowerCase());
+                  const cleanTitle = dbInfo?.title || cleanFileNameToTitle(file.name);
+                  const categoryName = folderName
+                    .split(' ')
+                    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                    .join(' ');
+
                   loadedSongs.push({
-                    id: `${bucket}/${item.name}`,
-                    title: title || item.name,
+                    id: dbInfo?.id ? String(dbInfo.id) : `${bucket}/${folderName}/${file.name}`,
+                    title: cleanTitle,
                     audio_url: audioUrl,
-                    category: 'General',
-                    cover_url: null,
-                    created_at: item.created_at || new Date().toISOString(),
+                    category: dbInfo?.genre || dbInfo?.category || categoryName,
+                    cover_url: dbInfo?.cover_url || null,
+                    created_at: file.created_at || new Date().toISOString(),
                   });
-                }
-              } else if (!item.id || item.id === item.name || !item.name.includes('.')) {
-                // Folder - scan inside folder
-                const folderName = item.name;
-                const { data: folderFiles } = await supabase.storage
-                  .from(bucket)
-                  .list(folderName, { limit: 500, sortBy: { column: 'name', order: 'asc' } });
-
-                for (const file of folderFiles || []) {
-                  const fileExt = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : '';
-                  if (!AUDIO_EXTENSIONS.includes(fileExt)) continue;
-
-                  const rawName = file.name.slice(0, file.name.lastIndexOf('.'));
-                  const title = rawName.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
-                  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(`${folderName}/${file.name}`);
-
-                  let audioUrl = urlData?.publicUrl;
-                  if (rawSupabaseUrl && audioUrl?.includes('/supabase-proxy')) {
-                    audioUrl = audioUrl.replace(/https?:\/\/[^/]+\/supabase-proxy/, rawSupabaseUrl);
-                  }
-
-                  const songId = `${bucket}/${folderName}/${file.name}`;
-                  if (audioUrl && !seenIds.has(songId)) {
-                    seenIds.add(songId);
-                    const category = folderName
-                      .split(' ')
-                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                      .join(' ');
-
-                    loadedSongs.push({
-                      id: songId,
-                      title: title || file.name,
-                      audio_url: audioUrl,
-                      category,
-                      cover_url: null,
-                      created_at: file.created_at || new Date().toISOString(),
-                    });
-                  }
                 }
               }
             }
-          } catch (storageErr) {
-            console.warn(`Error scanning storage bucket "${bucket}":`, storageErr);
           }
+        } catch (storageErr) {
+          console.warn(`Error scanning storage bucket "${bucket}":`, storageErr);
         }
       }
 
