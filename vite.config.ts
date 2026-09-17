@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   const targetUrl = env.VITE_SUPABASE_URL || 'https://vrkwawzcvepqqxxlyfwx.supabase.co'
 
   return {
+    base: './',
     plugins: [react()],
     server: {
       proxy: {
