@@ -24,13 +24,28 @@ import {
 export const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [selectedCategory, setSelectedCategory] = useState<string>('Arijit Singh Radio');
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+  // Instant cache load: render immediately from localStorage without blocking UI
+  const [songs, setSongs] = useState<Song[]>(() => {
+    try {
+      const cached = localStorage.getItem('pattupetti_songs_cache');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    try {
+      const cached = localStorage.getItem('pattupetti_songs_cache');
+      return !(cached && JSON.parse(cached).length > 0);
+    } catch {
+      return true;
+    }
+  });
 
   // Fetch songs exclusively from the Supabase 'songs' storage bucket
   const fetchSongs = useCallback(async () => {
-    setIsLoading(true);
-
     if (!isSupabaseConfigured()) {
       setSongs([]);
       setIsLoading(false);
@@ -100,10 +115,16 @@ export const AppContent: React.FC = () => {
       await scanBucketPath('songs', '');
 
       // Always use ONLY real Supabase songs — never fall back to dummy defaults
-      setSongs(loadedSongs);
+      if (loadedSongs.length > 0) {
+        setSongs(loadedSongs);
+        try {
+          localStorage.setItem('pattupetti_songs_cache', JSON.stringify(loadedSongs));
+        } catch (e) {
+          console.warn('Cache write error:', e);
+        }
+      }
     } catch (err: any) {
       console.error('Error fetching Supabase songs:', err);
-      setSongs([]);
     } finally {
       setIsLoading(false);
     }
