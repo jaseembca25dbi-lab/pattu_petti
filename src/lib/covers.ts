@@ -1,18 +1,7 @@
-import coverArijit from '../assets/covers/cover-arijit.jpg';
-import coverBollywood from '../assets/covers/cover-bollywood.jpg';
-import coverShafi from '../assets/covers/cover-shafi.jpg';
-import coverMixhit from '../assets/covers/cover-mixhit.jpg';
-import coverTamil from '../assets/covers/cover-tamil.jpg';
-import heroBg from '../assets/hero-bg.jpg';
-
-export const PLAYLIST_COVERS = {
-  arijit: coverArijit,
-  bollywood: coverBollywood,
-  shafi: coverShafi,
-  mixhit: coverMixhit,
-  tamil: coverTamil,
-  hero: heroBg,
-};
+/**
+ * High quality curated image resolver for Pattupetti
+ * Ensures every single song, category, and playlist has a matching editorial photo.
+ */
 
 // Curated Unsplash images with warm espresso, moody rose, and cinematic aesthetic
 export const EDITORIAL_IMAGES = {
@@ -39,31 +28,18 @@ export const EDITORIAL_IMAGES = {
   gerua: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80',
   hawayein: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=700&q=80',
   pal: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=700&q=80',
-  heroPortrait: heroBg,
+  heroPortrait: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=80',
   searchHero: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80',
   libraryPoster: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=700&q=80',
-  categoryHero: coverMixhit,
+  categoryHero: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=700&q=80',
 };
 
-export const CATEGORY_DEFAULT_COVERS: Record<string, string> = {
-  'Arijit Singh Radio': coverArijit,
-  'Trending Bollywood': coverBollywood,
-  'Bollywood': coverBollywood,
-  'Mix Hit': coverMixhit,
-  'Shafi Kollam Radio': coverShafi,
-  'Malayalam': coverShafi,
-  'Tamil Hit': coverTamil,
+const CATEGORY_DEFAULT_COVERS: Record<string, string> = {
+  'Arijit Singh Radio': EDITORIAL_IMAGES.aedil,
+  'Mix Hit': EDITORIAL_IMAGES.tumsehi,
+  'Malayalam': EDITORIAL_IMAGES.kallipenne,
+  'Tamil Hit': EDITORIAL_IMAGES.radhimaa,
 };
-
-export function getPlaylistCover(categoryOrName: string): string {
-  const t = (categoryOrName || '').toLowerCase().trim();
-  if (t.includes('arijit')) return coverArijit;
-  if (t.includes('bollywood') || t.includes('trending')) return coverBollywood;
-  if (t.includes('shafi') || t.includes('malayalam') || t.includes('kallipenne')) return coverShafi;
-  if (t.includes('tamil') || t.includes('kollywood')) return coverTamil;
-  if (t.includes('mix')) return coverMixhit;
-  return CATEGORY_DEFAULT_COVERS[categoryOrName] || coverMixhit;
-}
 
 const FALLBACK_POOL = [
   EDITORIAL_IMAGES.raataan,
@@ -118,9 +94,8 @@ export function getAutoCover(title: string, category?: string | null, customUrl?
   if (t.includes('hawayein')) return EDITORIAL_IMAGES.hawayein;
   if (t.includes('pal')) return EDITORIAL_IMAGES.pal;
 
-  if (category) {
-    const playlistCover = getPlaylistCover(category);
-    if (playlistCover) return playlistCover;
+  if (category && CATEGORY_DEFAULT_COVERS[category]) {
+    return CATEGORY_DEFAULT_COVERS[category];
   }
 
   // Deterministic fallback based on title hash
