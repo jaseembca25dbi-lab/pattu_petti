@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import type { Song } from "../types/song";
 import { usePlayer } from "../context/PlayerContext";
 import { SongCover } from "../components/SongCover";
-import { EDITORIAL_IMAGES } from "../lib/covers";
+import { getPlaylistCover } from "../lib/covers";
 import heroBg from "../assets/hero-bg.jpg";
 import { Play, Pause, ChevronRight, FolderHeart, ArrowRight, Music2 } from "lucide-react";
 
@@ -13,6 +13,8 @@ interface HomeViewProps {
 }
 
 const MOOD_COLOURS: Record<string, { bg: string; label: string }> = {
+  "Trending Bollywood": { bg: "from-[#3b1f24] to-[#1e0f12]", label: "BOLLYWOOD" },
+  "Bollywood":          { bg: "from-[#3b1f24] to-[#1e0f12]", label: "BOLLYWOOD" },
   "Arijit Singh Radio": { bg: "from-[#3b1f1a] to-[#1e0f0c]", label: "ARIJIT" },
   "Mix Hit":            { bg: "from-[#1f2b3b] to-[#0c1420]", label: "MIX HIT" },
   "Shafi Kollam Radio": { bg: "from-[#1b3522] to-[#0c1a10]", label: "SHAFI" },
@@ -22,14 +24,6 @@ const MOOD_COLOURS: Record<string, { bg: string; label: string }> = {
 function getMoodColour(cat: string) {
   return MOOD_COLOURS[cat] || { bg: "from-[#251a21] to-[#120d10]", label: cat.split(" ")[0].toUpperCase() };
 }
-
-const MOOD_COVERS: Record<string, string> = {
-  "Arijit Singh Radio": EDITORIAL_IMAGES.aedil,
-  "Mix Hit":            EDITORIAL_IMAGES.tumsehi,
-  "Shafi Kollam Radio": EDITORIAL_IMAGES.kallipenne,
-  "Tamil Hit":          EDITORIAL_IMAGES.radhimaa,
-  "Malayalam":          EDITORIAL_IMAGES.njankettiya,
-};
 
 export const HomeView: React.FC<HomeViewProps> = ({ songs, isLoading, onSelectCategory }) => {
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
@@ -284,22 +278,26 @@ export const HomeView: React.FC<HomeViewProps> = ({ songs, isLoading, onSelectCa
             {categoryNames.map((cat, index) => {
               const count = categoriesMap[cat]?.length || 0;
               const mood = getMoodColour(cat);
-              const coverImg = MOOD_COVERS[cat];
+              const coverImg = getPlaylistCover(cat);
               return (
                 <div
                   key={cat}
                   onClick={() => onSelectCategory && onSelectCategory(cat)}
-                  className={`group relative overflow-hidden rounded-2xl cursor-pointer anim-section stagger-${Math.min(index + 1, 8)} border border-white/5 hover:border-white/15 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl`}
-                  style={{ minHeight: "160px" }}
+                  className={`group relative overflow-hidden rounded-2xl cursor-pointer anim-section stagger-${Math.min(index + 1, 8)} border border-[#e29d8f]/20 hover:border-[#e29d8f]/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl shadow-lg`}
+                  style={{ minHeight: "170px" }}
                 >
                   {coverImg ? (
                     <div className="absolute inset-0">
-                      <img src={coverImg} alt={cat} className="w-full h-full object-cover opacity-40 group-hover:opacity-55 group-hover:scale-105 transition-all duration-500" style={{ filter: "grayscale(40%) contrast(1.1) sepia(0.3)" }} />
+                      <img
+                        src={coverImg}
+                        alt={cat}
+                        className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                      />
                     </div>
                   ) : (
                     <div className={`absolute inset-0 bg-gradient-to-br ${mood.bg}`} />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent group-hover:opacity-80 transition-opacity" />
                   <div className="relative z-10 h-full flex flex-col justify-between p-4" style={{ minHeight: "160px" }}>
                     <div className="flex justify-between items-start">
                       <span className="font-mono text-[10px] text-white/50">0{index + 1}</span>

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import type { Song } from '../types/song';
 import { usePlayer } from '../context/PlayerContext';
 import { SongCover } from '../components/SongCover';
-import { EDITORIAL_IMAGES } from '../lib/covers';
+import { getPlaylistCover } from '../lib/covers';
 import { 
   Play, 
   Pause, 
@@ -85,42 +85,52 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   // Image and description tailored to the category
   const playlistDetails = useMemo(() => {
     const t = categoryName.toLowerCase();
+    const coverImage = getPlaylistCover(categoryName);
+
+    if (t.includes('bollywood') || t.includes('trending')) {
+      return {
+        title: 'TRENDING BOLLYWOOD',
+        desc: 'Latest hits. Big emotions. Bollywood always on repeat.',
+        image: coverImage,
+        quote: 'Music that Moves You.',
+      };
+    }
     if (t.includes('arijit')) {
       return {
         title: 'ARIJIT SINGH RADIO',
-        desc: 'A collection of soulful tracks by Arijit Singh that touch hearts and stay forever.',
-        image: EDITORIAL_IMAGES.aedil,
-        quote: 'Feel Every Word.',
-      };
-    }
-    if (t.includes('tamil')) {
-      return {
-        title: 'TAMIL HIT ARCHIVE',
-        desc: 'Vibrant melodies and timeless Kollywood acoustic hits to elevate every emotion.',
-        image: EDITORIAL_IMAGES.radhimaa,
-        quote: 'Rhythm in the Blood.',
+        desc: 'Soulful tracks for quieter days and louder feelings.',
+        image: coverImage,
+        quote: 'Music Heals Differently.',
       };
     }
     if (t.includes('shafi') || t.includes('malayalam')) {
       return {
-        title: 'MALAYALAM NOSTALGIA',
-        desc: 'Classic evergreen melodies, soulful acoustics, and golden coastal frequencies.',
-        image: EDITORIAL_IMAGES.kallipenne,
-        quote: 'Home in Every Note.',
+        title: 'SHAFI KOLLAM RADIO',
+        desc: 'Timeless melodies from the voice that touches hearts.',
+        image: coverImage,
+        quote: 'Songs that Feel Like Home.',
+      };
+    }
+    if (t.includes('tamil')) {
+      return {
+        title: 'TAMIL HIT PLAYLIST',
+        desc: 'Timeless tracks from Kollywood for every mood.',
+        image: coverImage,
+        quote: 'Music Beyond Language.',
       };
     }
     if (t.includes('mix')) {
       return {
-        title: 'MIX HIT REPERTOIRE',
-        desc: 'The greatest chart-topping acoustic and indie anthems across generations.',
-        image: EDITORIAL_IMAGES.tumsehi,
-        quote: 'Timeless Anthems.',
+        title: 'MIX HIT PLAYLIST',
+        desc: 'Different genres. Same good vibes. A little bit of everything.',
+        image: coverImage,
+        quote: 'Good Music No Limits.',
       };
     }
     return {
       title: `${categoryName.toUpperCase()} ARCHIVE`,
       desc: `Curated ${categoryName} recordings preserved in high-fidelity for your listening pleasure.`,
-      image: EDITORIAL_IMAGES.categoryHero,
+      image: coverImage,
       quote: 'Feel Every Word.',
     };
   }, [categoryName]);
@@ -175,16 +185,16 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Hero Graphic with Cursive text */}
+          {/* Right Column: Hero Graphic with Cover Art */}
           <div className="md:col-span-4 flex justify-center md:justify-end">
-            <div className="relative w-56 h-64 sm:w-64 sm:h-72 rounded-2xl overflow-hidden shadow-2xl border border-[#e29d8f]/30 bg-[#1e131b] group">
+            <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-2xl overflow-hidden shadow-2xl border border-[#e29d8f]/30 bg-[#1e131b] group">
               <img
                 src={playlistDetails.image}
                 alt={playlistDetails.title}
-                className="w-full h-full object-cover grayscale contrast-125 sepia-[0.35] brightness-90 group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0c080b]/90 via-transparent to-transparent flex flex-col justify-end p-5">
-                <span className="font-script text-3xl sm:text-4xl text-[#f5bcaf] drop-shadow-md">
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0c080b]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                <span className="font-script text-2xl text-[#f5bcaf] drop-shadow-md">
                   {playlistDetails.quote}
                 </span>
               </div>
