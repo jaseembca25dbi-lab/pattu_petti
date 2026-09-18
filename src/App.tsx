@@ -145,12 +145,47 @@ export const AppContent: React.FC = () => {
       <SupabaseSetupNotice />
 
       {/* Mobile Top Navigation Header */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-[#0e0a0d] border-b border-[#e29d8f]/10 z-30">
+      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-[#0e0a0d]/95 backdrop-blur-md border-b border-[#e29d8f]/10 z-30 sticky top-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#e29d8f] flex items-center justify-center text-[#090608] font-bold">
-            <Radio className="w-4 h-4" />
-          </div>
-          <span className="font-display text-2xl tracking-wider text-white">PATTUPETTI</span>
+          {activeTab !== 'home' ? (
+            <button
+              onClick={() => setActiveTab('home')}
+              className="p-1 -ml-1 text-[#e29d8f] hover:text-white"
+              title="Back to Home"
+            >
+              <Radio className="w-5 h-5" />
+            </button>
+          ) : (
+            <div className="w-7 h-7 rounded-lg bg-[#e29d8f] flex items-center justify-center text-[#090608] font-bold">
+              <Radio className="w-3.5 h-3.5" />
+            </div>
+          )}
+          <span 
+            onClick={() => setActiveTab('home')}
+            className="font-display text-2xl tracking-wider text-white cursor-pointer"
+          >
+            PATTUPETTI
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('search')}
+            className={`p-1.5 rounded-lg transition-colors ${
+              activeTab === 'search' ? 'text-[#e29d8f] bg-[#e29d8f]/10' : 'text-[#ab9398] hover:text-white'
+            }`}
+            title="Search Archive"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+          <button
+            onClick={fetchSongs}
+            disabled={isLoading}
+            className="p-1.5 rounded-lg text-[#ab9398] hover:text-white transition-colors"
+            title="Sync Library"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#e29d8f]' : ''}`} />
+          </button>
         </div>
       </header>
 
@@ -168,9 +203,9 @@ export const AppContent: React.FC = () => {
         </div>
 
         {/* Scrollable Main Views */}
-        <main className="flex-1 flex flex-col overflow-y-auto bg-gradient-to-b from-[#140c12]/60 via-[#0c080b] to-[#080507] px-4 md:px-8 pt-6 pb-28">
-          {/* Top Bar */}
-          <div className="flex items-center justify-between mb-6 pb-2 border-b border-[#e29d8f]/10">
+        <main className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-gradient-to-b from-[#140c12]/60 via-[#0c080b] to-[#080507] px-4 md:px-8 pt-4 md:pt-6 pb-44 md:pb-28">
+          {/* Top Bar (Desktop only) */}
+          <div className="hidden md:flex items-center justify-between mb-6 pb-2 border-b border-[#e29d8f]/10">
             <div className="text-xs text-[#a88d92] font-medium flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#e29d8f] animate-pulse" />
               <span className="font-mono text-[11px] tracking-wider uppercase">Pattupetti Hi-Fi Stream</span>
@@ -182,7 +217,7 @@ export const AppContent: React.FC = () => {
               title="Sync library"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#e29d8f]' : ''}`} />
-              <span className="hidden sm:inline">Sync</span>
+              <span>Sync</span>
             </button>
           </div>
 
@@ -216,12 +251,15 @@ export const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-24 left-0 right-0 h-14 bg-[#0e0a0d]/95 backdrop-blur-lg border-t border-[#e29d8f]/15 z-30 flex items-center justify-around px-2">
+      {/* Mobile Bottom Navigation Bar (Fixed at bottom with Safe Area Support) */}
+      <nav 
+        aria-label="Mobile navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0d070b]/98 backdrop-blur-2xl border-t border-[#e29d8f]/15 px-3 flex items-center justify-around h-[calc(56px+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)]"
+      >
         <button
           onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center gap-1 py-1 px-4 text-xs font-medium transition-colors ${
-            activeTab === 'home' ? 'text-[#e29d8f]' : 'text-[#8c7479]'
+          className={`flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-medium transition-colors ${
+            activeTab === 'home' ? 'text-[#e29d8f]' : 'text-[#8c7479] hover:text-[#c4a8ad]'
           }`}
         >
           <Home className="w-4 h-4" />
@@ -230,8 +268,8 @@ export const AppContent: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('search')}
-          className={`flex flex-col items-center gap-1 py-1 px-4 text-xs font-medium transition-colors ${
-            activeTab === 'search' ? 'text-[#e29d8f]' : 'text-[#8c7479]'
+          className={`flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-medium transition-colors ${
+            activeTab === 'search' ? 'text-[#e29d8f]' : 'text-[#8c7479] hover:text-[#c4a8ad]'
           }`}
         >
           <Search className="w-4 h-4" />
@@ -240,8 +278,8 @@ export const AppContent: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('library')}
-          className={`flex flex-col items-center gap-1 py-1 px-4 text-xs font-medium transition-colors ${
-            activeTab === 'library' ? 'text-[#e29d8f]' : 'text-[#8c7479]'
+          className={`flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-medium transition-colors ${
+            activeTab === 'library' ? 'text-[#e29d8f]' : 'text-[#8c7479] hover:text-[#c4a8ad]'
           }`}
         >
           <Library className="w-4 h-4" />
@@ -250,11 +288,11 @@ export const AppContent: React.FC = () => {
 
         <button
           onClick={() => {
-            setSelectedCategory('Arijit Singh Radio');
+            setSelectedCategory(selectedCategory || 'Arijit Singh Radio');
             setActiveTab('category');
           }}
-          className={`flex flex-col items-center gap-1 py-1 px-4 text-xs font-medium transition-colors ${
-            activeTab === 'category' ? 'text-[#e29d8f]' : 'text-[#8c7479]'
+          className={`flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-medium transition-colors ${
+            activeTab === 'category' ? 'text-[#e29d8f]' : 'text-[#8c7479] hover:text-[#c4a8ad]'
           }`}
         >
           <Disc className="w-4 h-4" />
