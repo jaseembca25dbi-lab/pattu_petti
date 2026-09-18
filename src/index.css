@@ -5,12 +5,24 @@
 @layer base {
   * {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  body {
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
     background-color: #0b080a;
     color: #f5ebe6;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overscroll-behavior: none;
+    overflow: hidden;
   }
 
   h1, h2, h3, .font-heading {
