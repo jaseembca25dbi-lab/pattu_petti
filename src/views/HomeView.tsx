@@ -1,8 +1,9 @@
-﻿import React, { useMemo } from "react";
+import React, { useMemo } from "react";
 import type { Song } from "../types/song";
 import { usePlayer } from "../context/PlayerContext";
 import { SongCover } from "../components/SongCover";
 import { EDITORIAL_IMAGES } from "../lib/covers";
+import heroBg from "../assets/hero-bg.jpg";
 import { Play, Pause, ChevronRight, FolderHeart, ArrowRight, Music2 } from "lucide-react";
 
 interface HomeViewProps {
@@ -96,25 +97,38 @@ export const HomeView: React.FC<HomeViewProps> = ({ songs, isLoading, onSelectCa
       <div className="relative min-h-[82vh] flex flex-col overflow-hidden rounded-3xl bg-[#0d0009] mb-10 border border-[#e29d8f]/10">
 
         {/* Background portrait */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <img
-            src={EDITORIAL_IMAGES.heroPortrait}
-            alt="Hero"
-            className="w-full h-full object-cover object-top anim-hero-img"
-            style={{ opacity: 0.55, filter: "grayscale(25%) contrast(1.12) sepia(0.2) brightness(0.55)" }}
+            src={heroBg}
+            alt="Pattupetti artwork"
+            className="w-full h-full object-cover object-center md:object-[60%_35%] anim-hero-img"
+            style={{ opacity: 0.88, filter: "contrast(1.06) saturate(1.05) brightness(0.85)" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0b000a]/95 via-[#0b000a]/55 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0b000a] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0b000a]/92 via-[#0b000a]/45 to-[#0b000a]/65" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0b000a] via-transparent to-black/30" />
         </div>
 
         {/* Top nav */}
         <nav className="relative z-20 flex items-center justify-between px-6 md:px-10 pt-6 pb-4 anim-header">
           <div className="flex items-center gap-8 text-[11px] tracking-[0.25em] font-semibold">
-            {["MUSIC", "PEOPLE", "MOMENTS", "PLAYLISTS"].map((item) => (
-              <span key={item} className="text-[#c8a8a0] hover:text-white cursor-pointer transition-colors duration-200 hidden md:block">
-                {item}
-              </span>
-            ))}
+            <span
+              onClick={() => document.getElementById("recently-played-section")?.scrollIntoView({ behavior: "smooth" })}
+              className="text-[#c8a8a0] hover:text-white cursor-pointer transition-colors duration-200 hidden md:block"
+            >
+              MUSIC
+            </span>
+            <span
+              onClick={() => document.getElementById("browse-mood-section")?.scrollIntoView({ behavior: "smooth" })}
+              className="text-[#c8a8a0] hover:text-white cursor-pointer transition-colors duration-200 hidden md:block"
+            >
+              PLAYLISTS
+            </span>
+            <span
+              onClick={() => document.getElementById("browse-mood-section")?.scrollIntoView({ behavior: "smooth" })}
+              className="text-[#c8a8a0] hover:text-white cursor-pointer transition-colors duration-200 hidden md:block"
+            >
+              MOMENTS
+            </span>
           </div>
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 backdrop-blur-md">
             <Music2 className="w-3.5 h-3.5 text-[#e29d8f]" />
@@ -213,7 +227,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ songs, isLoading, onSelectCa
 
       {/* ═══════════ 02 RECENTLY PLAYED ═══════════ */}
       {recentlyAdded.length > 0 && (
-        <section className="mb-12 anim-section" style={{ animationDelay: "1.0s" }}>
+        <section id="recently-played-section" className="mb-12 anim-section scroll-mt-6" style={{ animationDelay: "1.0s" }}>
           <div className="flex items-end justify-between mb-5">
             <div>
               <span className="font-mono text-[10px] text-[#e29d8f] tracking-widest block mb-1">02</span>
@@ -257,7 +271,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ songs, isLoading, onSelectCa
 
       {/* ═══════════ 03 BROWSE BY MOOD ═══════════ */}
       {categoryNames.length > 0 && (
-        <section className="anim-section" style={{ animationDelay: "1.25s" }}>
+        <section id="browse-mood-section" className="anim-section scroll-mt-6" style={{ animationDelay: "1.25s" }}>
           <div className="flex items-end justify-between mb-5">
             <div>
               <span className="font-mono text-[10px] text-[#e29d8f] tracking-widest block mb-1">03</span>

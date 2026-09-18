@@ -12,6 +12,7 @@ import type { Song } from './types/song';
 import { parseFilenameArtistTitle, folderToCategory } from './lib/filename';
 import { supabase, isSupabaseConfigured, rawSupabaseUrl } from './lib/supabase';
 import { getAutoCover } from './lib/covers';
+import heroBg from './assets/hero-bg.jpg';
 import {
   Radio,
   Home,
@@ -135,6 +136,12 @@ export const AppContent: React.FC = () => {
 
       {/* Main Workspace: Sidebar + Dynamic Content View */}
       <div className="flex flex-1 overflow-hidden relative">
+        {/* Ambient background glow from artwork */}
+        <div
+          className="fixed inset-0 pointer-events-none z-0 opacity-15 bg-cover bg-center filter blur-3xl"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        />
+
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
           <Sidebar
